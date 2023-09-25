@@ -8,9 +8,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/robfig/cron/v3"
 )
 
 // QueryResult struct represents the JSON structure of the API response
@@ -36,8 +38,29 @@ func main() {
 	redashAPIKey := getEnv("REDASH_API_KEY", "")
 	redashQueryID := getEnv("REDASH_QUERY_ID", "")
 	googleChatWebhookURL := getEnv("GOOGLE_CHAT_WEBHOOK_URL", "")
+	hour := getEnv("SCHEDULE_HOUR", "8")      // Default to 8
+	minute := getEnv("SCHEDULE_MINUTE", "30") // Default to 30
 
-	// Construct URLs
+	var processor DataProcessor = countMembersProcessor
+
+	c := cron.New(cron.WithSeconds())
+	schedule := fmt.Sprintf("0 %s %s * * *", minute, hour) // Constructing the schedule using the retrieved hour and minute
+	_, err := c.AddFunc(schedule, func() {                 // Using the constructed schedule here
+		runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, processor)
+	})
+	if err != nil {
+		log.Fatal("Could not schedule task: ", err)
+	}
+	c.Start()
+
+	// Use a WaitGroup to keep the application running indefinitely
+	var wg sync.WaitGroup
+	wg.Add(1)
+	wg.Wait()
+}
+
+func runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL string, processor DataProcessor) {
+	// Construct the URLs
 	refreshURL := fmt.Sprintf("%s/api/queries/%s/refresh", redashBaseURL, redashQueryID)
 	resultsURL := fmt.Sprintf("%s/api/queries/%s/results.json?api_key=%s", redashBaseURL, redashQueryID, redashAPIKey)
 
@@ -47,13 +70,14 @@ func main() {
 	// Refresh the query with Authorization header
 	req, err := http.NewRequest("POST", refreshURL, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error creating refresh request: ", err)
+		return
 	}
-	req.Header.Add("Authorization", fmt.Sprintf("Key %s", redashAPIKey))
-
+	req.Header.Add("Authorization", "Key "+redashAPIKey)
 	_, err = client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error refreshing query: ", err)
+		return
 	}
 
 	// Sleep or poll until the results are ready
@@ -62,17 +86,18 @@ func main() {
 	// Fetch the results using API key in the URL
 	resp, err := http.Get(resultsURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error getting results: ", err)
+		return
 	}
 	defer resp.Body.Close()
 
 	var result QueryResult
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error decoding results: ", err)
+		return
 	}
 
-	var processor DataProcessor = countMembersProcessor
 	processedData, err := processor(result.QueryResult.Data.Rows)
 	if err != nil {
 		log.Printf("Error processing data: %v", err)
@@ -98,8 +123,9 @@ func countMembersProcessor(rows []interface{}) (interface{}, error) {
 
 // sendMessageToGoogleChat sends the count message to Google Chat Webhook
 func sendMessageToGoogleChat(webhookURL string, count int) error {
+	currentDate := time.Now().Format("January 2, 2006") // YYYY-MM-DD format
 	message := map[string]interface{}{
-		"text": fmt.Sprintf("Total Member Counts: %d", count),
+		"text": fmt.Sprintf("Total member count for %s: *%d*", currentDate, count),
 	}
 
 	messageBytes, err := json.Marshal(message)
