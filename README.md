@@ -23,7 +23,7 @@ Environment variables are used to configure the application. They can be set in 
 ```sh
 git clone https://github.com/RAHB-REALTORS-Association/member-counts-go.git
 cd member-counts-go
-go build
+go build -o member-counts
 ```
 
 Before running, ensure that the environment variables are correctly set, either in your environment or in a `.env` file in the project directory.
@@ -33,7 +33,7 @@ Before running, ensure that the environment variables are correctly set, either 
 Once configured and built, run the application using:
 
 ```sh
-./main
+./member-counts
 ```
 
 The application will refresh the specified Redash query, fetch the resulting data, process it to calculate the total member counts, and send this count to the specified Google Chat Webhook.
