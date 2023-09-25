@@ -38,11 +38,14 @@ func main() {
 	redashAPIKey := getEnv("REDASH_API_KEY", "")
 	redashQueryID := getEnv("REDASH_QUERY_ID", "")
 	googleChatWebhookURL := getEnv("GOOGLE_CHAT_WEBHOOK_URL", "")
+	hour := getEnv("SCHEDULE_HOUR", "8")      // Default to 8
+	minute := getEnv("SCHEDULE_MINUTE", "30") // Default to 30
 
 	var processor DataProcessor = countMembersProcessor
 
 	c := cron.New(cron.WithSeconds())
-	_, err := c.AddFunc("30 8 * * *", func() {
+	schedule := fmt.Sprintf("0 %s %s * * *", minute, hour) // Constructing the schedule using the retrieved hour and minute
+	_, err := c.AddFunc(schedule, func() {                 // Using the constructed schedule here
 		runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, processor)
 	})
 	if err != nil {
@@ -120,8 +123,9 @@ func countMembersProcessor(rows []interface{}) (interface{}, error) {
 
 // sendMessageToGoogleChat sends the count message to Google Chat Webhook
 func sendMessageToGoogleChat(webhookURL string, count int) error {
+	currentDate := time.Now().Format("January 2, 2006") // YYYY-MM-DD format
 	message := map[string]interface{}{
-		"text": fmt.Sprintf("Total Member Counts: %d", count),
+		"text": fmt.Sprintf("Total member count for %s: *%d*", currentDate, count),
 	}
 
 	messageBytes, err := json.Marshal(message)
