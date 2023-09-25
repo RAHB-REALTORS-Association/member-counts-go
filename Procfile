@@ -1,1 +1,1 @@
-web: main
+web: ./bin/member-counts-go
