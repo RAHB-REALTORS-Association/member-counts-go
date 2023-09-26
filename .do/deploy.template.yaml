@@ -1,0 +1,25 @@
+spec:
+  name: member-counts-go
+  services:
+  - name: member-counts-service
+    git:
+      branch: main
+      repo_clone_url: https://github.com/RAHB-REALTORS-Association/member-counts-go.git
+    envs:
+    - key: REDASH_BASE_URL
+      value: "<Your_Redash_Base_URL>"
+      type: SECRET
+    - key: REDASH_API_KEY
+      value: "<Your_Redash_API_Key>"
+      type: SECRET
+    - key: REDASH_QUERY_ID
+      value: "<Your_Redash_Query_ID>"
+    - key: GOOGLE_CHAT_WEBHOOK_URL
+      value: "<Your_Google_Chat_Webhook_URL>"
+      type: SECRET
+    - key: SCHEDULE_HOUR
+      value: "<Your_Schedule_Hour>"
+    - key: SCHEDULE_MINUTE
+      value: "<Your_Schedule_Minute>"
+    - key: TIMEZONE
+      value: "<Your_Timezone>"
