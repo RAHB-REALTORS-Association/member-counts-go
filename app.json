@@ -1,0 +1,32 @@
+{
+    "name": "Member Counts Go App",
+    "description": "A Go application that periodically retrieves, processes, and sends member counts to a Google Chat Webhook.",
+    "repository": "https://github.com/RAHB-REALTORS-Association/member-counts-go",
+    "env": {
+      "REDASH_BASE_URL": {
+        "description": "The base URL of your Redash instance.",
+        "required": true
+      },
+      "REDASH_API_KEY": {
+        "description": "The API key for accessing the Redash API.",
+        "required": true
+      },
+      "REDASH_QUERY_ID": {
+        "description": "The ID of the Redash query to fetch."
+      },
+      "GOOGLE_CHAT_WEBHOOK_URL": {
+        "description": "The URL of the Google Chat Webhook.",
+        "required": true
+      },
+      "SCHEDULE_HOUR": {
+        "description": "The hour to trigger the action."
+      },
+      "SCHEDULE_MINUTE": {
+        "description": "The minute to trigger the action."
+      },
+      "TIMEZONE": {
+        "description": "Your timezone."
+      }
+    }
+  }
+  
