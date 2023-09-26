@@ -46,7 +46,7 @@ func main() {
 	googleChatWebhookURL := getEnv("GOOGLE_CHAT_WEBHOOK_URL", "")
 	hour := getEnv("SCHEDULE_HOUR", "8")      // Default to 8
 	minute := getEnv("SCHEDULE_MINUTE", "30") // Default to 30
-	timezone := getEnv("TIMEZONE", "America/Toronto") // Default to America/Toronto
+	timezoneStr := getEnv("TIMEZONE", "America/Toronto") // Default to America/Toronto
 
 	var processor DataProcessor = countMembersProcessor
 
@@ -56,14 +56,20 @@ func main() {
 		return
 	}
 
-	// Create a new cron scheduler
-	c := cron.New(cron.WithLocation(timezone), cron.WithSeconds())
+	// Load the location from the timezone string
+	location, err := time.LoadLocation(timezoneStr)
+	if err != nil {
+	    log.Fatal("Invalid timezone: ", err)
+	}
+
+	// Create a new cron scheduler with the loaded location
+	c := cron.New(cron.WithSeconds(), cron.WithLocation(location))
 
 	// Constructing the schedule using the retrieved hour and minute
 	schedule := fmt.Sprintf("0 %s %s * * *", minute, hour)
 
 	// Scheduling the task to run at the specified time
-	_, err := c.AddFunc(schedule, func() {
+	_, err = c.AddFunc(schedule, func() {
 		runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, processor)
 	})
 	if err != nil {
