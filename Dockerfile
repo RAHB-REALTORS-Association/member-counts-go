@@ -1,5 +1,5 @@
 # Use the official Go image from the DockerHub
-FROM golang:1.20
+FROM golang:1.20 AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -19,12 +19,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o member-counts-go 
 # Start fresh from a smaller image
 FROM alpine:latest
 
-# Security related setting, see https://stackoverflow.com/questions/52215283/what-is-the-use-of-user-nobody-in-dockerfile
-RUN apk --no-cache add ca-certificates && addgroup -S app && adduser -S -G app app
+# Install runtime dependencies and create app user
+RUN apk --no-cache add ca-certificates tzdata && addgroup -S app && adduser -S -G app app
+
+# Security related setting, switch to non-root user
 USER app
 
-# Copy the Pre-built binary file from the previous stage
-COPY --from=0 /app/member-counts-go .
+# Copy the Pre-built binary file from the builder stage
+COPY --from=builder /app/member-counts-go .
 
 # Command to run the executable
 ENTRYPOINT ["./member-counts-go"]
