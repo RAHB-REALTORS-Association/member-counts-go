@@ -1,5 +1,5 @@
 ---
-name: Feature request
+name: Feature Request
 about: Suggest an idea for improving the console app
 title: '[Feature Request] '
 labels: 'enhancement'
