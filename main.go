@@ -14,6 +14,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/robfig/cron/v3"
+	"github.com/sendgrid/sendgrid-go"
 )
 
 // QueryResult struct represents the JSON structure of the API response
@@ -44,9 +45,13 @@ func main() {
 	redashAPIKey := getEnv("REDASH_API_KEY", "")
 	redashQueryID := getEnv("REDASH_QUERY_ID", "")
 	googleChatWebhookURL := getEnv("GOOGLE_CHAT_WEBHOOK_URL", "")
+	senderEmail := getEnv("SENDER_EMAIL", "")
+	emailSubject := getEnv("EMAIL_SUBJECT", "")
+	recipientEmails := getEnv("RECIPIENT_EMAILS", "")
 	hour := getEnv("SCHEDULE_HOUR", "8")      // Default to 8
 	minute := getEnv("SCHEDULE_MINUTE", "30") // Default to 30
 	timezoneStr := getEnv("TIMEZONE", "America/Toronto") // Default to America/Toronto
+}
 
 	var processor DataProcessor = countMembersProcessor
 
@@ -84,7 +89,7 @@ func main() {
 }
 
 // runScheduledTask is a function to run the scheduled task for fetching and processing the data
-func runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL string, processor DataProcessor) {
+func runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, senderEmail, emailSubject, recipientEmails string, processor DataProcessor) {
 	// Construct the URLs for refreshing and fetching results
 	refreshURL := fmt.Sprintf("%s/api/queries/%s/refresh", redashBaseURL, redashQueryID)
 	resultsURL := fmt.Sprintf("%s/api/queries/%s/results.json?api_key=%s", redashBaseURL, redashQueryID, redashAPIKey)
@@ -143,6 +148,12 @@ func runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebh
 	if err != nil {
 		log.Printf("Error sending message to Google Chat: %v", err)
 	}
+
+	// Send the processed data via email
+	err = sendEmail(senderEmail, emailSubject, recipientEmails, count)
+	if err != nil {
+		log.Printf("Error sending email: %v", err)
+	}
 }
 
 // countMembersProcessor is a function to process the data and return the number of rows as the processed data
@@ -150,14 +161,32 @@ func countMembersProcessor(rows []interface{}) (interface{}, error) {
 	return len(rows), nil
 }
 
-// sendMessageToGoogleChat is a function to send the count message to Google Chat Webhook
-func sendMessageToGoogleChat(webhookURL string, count int) error {
+// sendEmail is a function to send the count message via email
+func sendEmail(senderEmail, emailSubject, recipientEmails string, count int) error {
 	// Format the current date to "Month Day, Year" format
 	currentDate := time.Now().Format("January 2, 2006")
 
 	// Construct the message to be sent
 	message := map[string]interface{}{
-		"text": fmt.Sprintf("Total member count for %s: *%d*", currentDate, count),
+		"from": map[string]string{
+			"email": senderEmail,
+		},
+		"subject": emailSubject,
+		"content": []map[string]string{
+			{
+				"type":  "text/plain",
+				"value": fmt.Sprintf("Total member count for %s: %d", currentDate, count),
+			},
+		},
+		"personalizations": []map[string]interface{}{
+			{
+				"to": []map[string]string{
+					{
+						"email": recipientEmails,
+					},
+				},
+			},
+		},
 	}
 
 	// Marshal the message to JSON
@@ -166,17 +195,18 @@ func sendMessageToGoogleChat(webhookURL string, count int) error {
 		return err
 	}
 
-	// Send the message to the provided webhook URL
-	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(messageBytes))
+	// Send the message using the SendGrid API
+	request := sendgrid.GetRequest(os.Getenv("SENDGRID_API_KEY"), "/v3/mail/send", "https://api.sendgrid.com")
+	request.Method = "POST"
+	request.Body = messageBytes
+	response, err := sendgrid.API(request)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 
 	// Check the response status
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("failed to send message to Google Chat, status: %d, response: %s", resp.StatusCode, string(body))
+	if response.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("failed to send email, status: %d, response: %s", response.StatusCode, response.Body)
 	}
 
 	return nil
