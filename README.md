@@ -8,6 +8,7 @@
 - [🧑‍💻 Usage](#-usage)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [🌐 Community](#-community)
+- [📄 License](#-license)
 
 ## ⚙️ Configuration
 
