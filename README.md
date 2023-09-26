@@ -28,6 +28,10 @@ Environment variables are used to configure the application. They can be set in 
 
 ## 🚀 Deployment
 
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/RAHB-REALTORS-Association/member-counts-go/tree/main)
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/RAHB-REALTORS-Association/member-counts-go/tree/main)
+
 ```sh
 git clone https://github.com/RAHB-REALTORS-Association/member-counts-go.git
 cd member-counts-go
@@ -38,13 +42,28 @@ Before running, ensure that the environment variables are correctly set, either 
 
 ## 🧑‍💻 Usage
 
-Once configured and built, run the application using:
+To run the application, use the following command:
 
 ```sh
 ./member-counts-go
 ```
 
-The application will refresh the specified Redash query, fetch the resulting data, process it to calculate the total member counts, and send this count to the specified Google Chat Webhook.
+When executed, the application will remain idle until it reaches the specified hour and minute. Once the specified time is hit, the application will:
+
+1. **Refresh** the specified Redash query.
+2. **Fetch** the newly generated data.
+3. **Process** the data to calculate the total member counts.
+4. **Send** this count to the specified Google Chat Webhook.
+
+### Immediate Execution
+
+If you prefer to run the application immediately without waiting for the scheduled time, use the `--now` flag:
+
+```sh
+./member-counts-go --now
+```
+
+With the `--now` flag, the application bypasses the scheduler and executes the aforementioned steps immediately.
 
 ## 🛠️ Tech Stack
 
