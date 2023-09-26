@@ -1,5 +1,6 @@
 [![Continuous Integration](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml)
 [![Build](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/build.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/build.yml)
+[![Docker](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/docker.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/docker.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Member Counts
