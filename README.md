@@ -1,3 +1,7 @@
+[![Continuous Integration](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml)
+[![Build](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/build.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # Member Counts
 
 **Member Counts** is a Go-based application designed to fetch and process member data from Redash and send total member counts to a Google Chat using a Webhook.
