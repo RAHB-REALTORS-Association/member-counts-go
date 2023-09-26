@@ -9,11 +9,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/robfig/cron/v3"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 // QueryResult struct represents the JSON structure of the API response
@@ -44,22 +47,26 @@ func main() {
 	redashAPIKey := getEnv("REDASH_API_KEY", "")
 	redashQueryID := getEnv("REDASH_QUERY_ID", "")
 	googleChatWebhookURL := getEnv("GOOGLE_CHAT_WEBHOOK_URL", "")
-	hour := getEnv("SCHEDULE_HOUR", "8")      // Default to 8
-	minute := getEnv("SCHEDULE_MINUTE", "30") // Default to 30
+	sendGridAPIKey := getEnv("SENDGRID_API_KEY", "")
+	senderEmail := getEnv("SENDER_EMAIL", "")
+	emailSubject := getEnv("EMAIL_SUBJECT", "Member Counts Notification")
+	recipientEmails := getEnv("RECIPIENT_EMAILS", "")
+	hour := getEnv("SCHEDULE_HOUR", "8")                 // Default to 8
+	minute := getEnv("SCHEDULE_MINUTE", "30")            // Default to 30
 	timezoneStr := getEnv("TIMEZONE", "America/Toronto") // Default to America/Toronto
 
 	var processor DataProcessor = countMembersProcessor
 
 	// If the --now flag is provided, run the task immediately and exit
 	if *nowFlag {
-		runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, processor)
+		runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, sendGridAPIKey, senderEmail, emailSubject, recipientEmails, processor)
 		return
 	}
 
 	// Load the location from the timezone string
 	location, err := time.LoadLocation(timezoneStr)
 	if err != nil {
-	    log.Fatal("Invalid timezone: ", err)
+		log.Fatal("Invalid timezone: ", err)
 	}
 
 	// Create a new cron scheduler with the loaded location
@@ -70,7 +77,7 @@ func main() {
 
 	// Scheduling the task to run at the specified time
 	_, err = c.AddFunc(schedule, func() {
-		runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, processor)
+		runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, sendGridAPIKey, senderEmail, emailSubject, recipientEmails, processor)
 	})
 	if err != nil {
 		log.Fatal("Could not schedule task: ", err)
@@ -84,7 +91,7 @@ func main() {
 }
 
 // runScheduledTask is a function to run the scheduled task for fetching and processing the data
-func runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL string, processor DataProcessor) {
+func runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebhookURL, sendGridAPIKey, senderEmail, emailSubject, recipientEmails string, processor DataProcessor) {
 	// Construct the URLs for refreshing and fetching results
 	refreshURL := fmt.Sprintf("%s/api/queries/%s/refresh", redashBaseURL, redashQueryID)
 	resultsURL := fmt.Sprintf("%s/api/queries/%s/results.json?api_key=%s", redashBaseURL, redashQueryID, redashAPIKey)
@@ -143,6 +150,12 @@ func runScheduledTask(redashBaseURL, redashAPIKey, redashQueryID, googleChatWebh
 	if err != nil {
 		log.Printf("Error sending message to Google Chat: %v", err)
 	}
+
+	// Send the processed data via email
+	err = sendEmail(sendGridAPIKey, senderEmail, emailSubject, fmt.Sprintf("Total member count for %s: *%d*", time.Now().Format("January 2, 2006"), count), recipientEmails)
+	if err != nil {
+		log.Printf("Error sending email: %v", err)
+	}
 }
 
 // countMembersProcessor is a function to process the data and return the number of rows as the processed data
@@ -180,6 +193,30 @@ func sendMessageToGoogleChat(webhookURL string, count int) error {
 	}
 
 	return nil
+}
+
+// sendEmail is a function to send the count message via email using SendGrid
+func sendEmail(sendGridAPIKey, senderEmail, subject, body, recipientEmails string) error {
+	from := mail.NewEmail("Member Counts App", senderEmail)
+	toEmails := parseEmails(recipientEmails)
+	for _, toEmail := range toEmails {
+		to := mail.NewEmail("", toEmail)
+		message := mail.NewSingleEmail(from, subject, to, body, body)
+		client := sendgrid.NewSendClient(sendGridAPIKey)
+		response, err := client.Send(message)
+		if err != nil {
+			return err
+		}
+		if response.StatusCode != http.StatusAccepted {
+			return fmt.Errorf("failed to send email, status: %d, response: %s", response.StatusCode, response.Body)
+		}
+	}
+	return nil
+}
+
+// parseEmails is a helper function to parse the comma-separated list of recipient emails
+func parseEmails(emailsStr string) []string {
+	return strings.Split(emailsStr, ",")
 }
 
 // getEnv is a function to fetch the value of the environment variable identified by key,
