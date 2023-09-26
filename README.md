@@ -28,27 +28,51 @@ Environment variables are used to configure the application. They can be set in 
 
 ## 🚀 Deployment
 
+### Deploy Using PaaS
 [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/RAHB-REALTORS-Association/member-counts-go/tree/main)
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/RAHB-REALTORS-Association/member-counts-go/tree/main)
 
+### Build and Run Locally
 ```sh
 git clone https://github.com/RAHB-REALTORS-Association/member-counts-go.git
 cd member-counts-go
 go build
 ```
-
 Before running, ensure that the environment variables are correctly set, either in your environment or in a `.env` file in the project directory.
+
+### Run Pre-built Docker Image
+```sh
+docker pull ghcr.io/rahb-realtors-association/member-counts-go:latest
+docker run --env-file .env ghcr.io/rahb-realtors-association/member-counts-go:latest
+```
+Ensure that the `.env` file containing the environment variables is present in the directory from which you are running the Docker command.
+
+### Building Docker Image Locally
+```sh
+git clone https://github.com/RAHB-REALTORS-Association/member-counts-go.git
+cd member-counts-go
+docker build -t member-counts-go .
+docker run --env-file .env member-counts-go
+```
+Again, ensure the `.env` file is present in your project directory and contains the necessary environment variables before running the Docker image.
 
 ## 🧑‍💻 Usage
 
-To run the application, use the following command:
+### Scheduled Execution
+To run the application in a scheduled manner, use the following command:
 
 ```sh
 ./member-counts-go
 ```
 
-When executed, the application will remain idle until it reaches the specified hour and minute. Once the specified time is hit, the application will:
+Or, when using Docker:
+
+```sh
+docker run --env-file .env ghcr.io/rahb-realtors-association/member-counts-go:latest
+```
+
+In these scenarios, the application will remain idle until it reaches the specified hour and minute in your environment or `.env` file. Once the specified time is hit, the application will:
 
 1. **Refresh** the specified Redash query.
 2. **Fetch** the newly generated data.
@@ -57,13 +81,23 @@ When executed, the application will remain idle until it reaches the specified h
 
 ### Immediate Execution
 
-If you prefer to run the application immediately without waiting for the scheduled time, use the `--now` flag:
+For FaaS environments or testing purposes, if you prefer to run the application immediately without waiting for the scheduled time, use the `--now` flag:
 
 ```sh
 ./member-counts-go --now
 ```
 
-With the `--now` flag, the application bypasses the scheduler and executes the aforementioned steps immediately.
+Or, when using Docker:
+
+```sh
+docker run --env-file .env ghcr.io/rahb-realtors-association/member-counts-go:latest --now
+```
+
+With the `--now` flag, the application bypasses the scheduler and executes the aforementioned steps immediately. This is especially useful for testing or when deploying in environments that are ephemeral, like certain FaaS platforms.
+
+### Environment Configuration
+
+Before running the application in any environment, ensure that the environment variables are correctly set, either in your environment or in a `.env` file in the project directory or the directory from which you are running the Docker command.
 
 ## 🛠️ Tech Stack
 
