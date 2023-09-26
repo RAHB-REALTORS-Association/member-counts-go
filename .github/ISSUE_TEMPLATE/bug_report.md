@@ -25,16 +25,7 @@ If applicable, add the console output to help explain your problem.
 **Environment (please complete the following information):**
  - OS: [e.g. Windows, macOS, Linux]
  - Version [e.g. 10, 11.4]
- - Go Version [e.g. 1.16]
-
-**Configuration**
-- REDASH_BASE_URL: [e.g. http://example.com]
-- REDASH_API_KEY: [e.g. abcd1234]
-- REDASH_QUERY_ID: [e.g. 1]
-- GOOGLE_CHAT_WEBHOOK_URL: [e.g. http://example.com/webhook]
-- SCHEDULE_HOUR: [e.g. 8]
-- SCHEDULE_MINUTE: [e.g. 30]
-- TIMEZONE: [e.g. America/Toronto]
+ - Go Version [e.g. 1.20]
 
 **Additional context**
 Add any other context about the problem here, such as specific conditions or configurations that cause the bug to appear.
