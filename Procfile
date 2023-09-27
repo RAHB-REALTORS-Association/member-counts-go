@@ -1,1 +1,1 @@
-web: ./bin/member-counts-go
+worker: ./bin/member-counts-go
