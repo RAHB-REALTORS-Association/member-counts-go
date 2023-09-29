@@ -1,4 +1,4 @@
-[![Continuous Integration](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml)
+[![CI](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/go.yml)
 [![Build](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/build.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/build.yml)
 [![Docker](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/docker.yml/badge.svg)](https://github.com/RAHB-REALTORS-Association/member-counts-go/actions/workflows/docker.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -23,6 +23,10 @@ Environment variables are used to configure the application. They can be set in 
 - `REDASH_API_KEY`: The API key for accessing the Redash API.
 - `REDASH_QUERY_ID`: The ID of the Redash query to fetch.
 - `GOOGLE_CHAT_WEBHOOK_URL`: The URL of the Google Chat Webhook.
+- `SENDGRID_API_KEY`: Your SendGrid API key.
+- `SENDER_EMAIL`:  The From: address of the email.
+- `EMAIL_SUBJECT`: The Subject: of the email.
+- `RECIPIENT_EMAILS`: The comma-separated list of email recipients.
 - `SCHEDULE_HOUR`: The hour to trigger the action.
 - `SCHEDULE_MINUTE`: The minute to trigger the action.
 - `TIMEZONE`: Your timezone.
