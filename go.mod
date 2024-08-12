@@ -6,7 +6,7 @@ require github.com/joho/godotenv v1.5.1
 
 require (
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
+	github.com/sendgrid/sendgrid-go v3.15.0+incompatible
 )
 
 require (
